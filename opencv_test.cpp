@@ -18,7 +18,7 @@ int main() {
     // Display the image
     cv::imshow("Test OpenCV Installation", image);
     cv::waitKey(0);
-    std::cout << "Hasta la vista, baby." << std::endl;
+    std::cout << "Hasta la vista, baby" << std::endl;
     
     return 0;
 }
