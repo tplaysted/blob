@@ -5,7 +5,7 @@
 #include <opencv2/imgproc.hpp>
 
 const int THRESHOLD = 127;
-const int CAMERA_PORT = 0;
+const int CAMERA_PORT = 2;
 
 cv::Mat make_grayscale(cv::Mat &image) {
     cv::Mat gray_image; 
@@ -15,24 +15,23 @@ cv::Mat make_grayscale(cv::Mat &image) {
 
 cv::Mat apply_thresholding(cv::Mat &image) {
     cv::Mat target;
-    cv::threshold(image, target, THRESHOLD, 255, cv::THRESH_BINARY);
+    double min, max;
+    cv::minMaxLoc(image, &min, &max);  // Get the dimmest and brightest pixels for scaling
+    image.convertTo(target, image.type(), 1.0, (-1.0 * min));
+    target.convertTo(target, image.type(), 255 / (max - min + 1), 0); // scale image to full range
+    cv::threshold(target, target, THRESHOLD, 255, cv::THRESH_BINARY);  // do thresholding
     return target;
 }
 
-cv::Mat capture_photo() {
-    cv::VideoCapture cap(2); // On my laptop "0" is the built-in camera. 
+cv::Mat capture_photo() { // Display camera output and await user input before capturing
+    cv::VideoCapture cap(CAMERA_PORT); // On my laptop "0" is the built-in camera. 
     if (!cap.isOpened()) {
         std::cerr << "Error opening the camera!" << std::endl;
     }
 
     cv::Mat frame;
     
-    cap.read(frame);
-    if (frame.empty()) {
-        std::cerr << "No frame captured?" << std::endl;
-    }
-
-        for (;;)
+    for (;;)
     {
         // wait for a new frame from camera and store it into 'frame'
         cap.read(frame);
@@ -41,12 +40,13 @@ cv::Mat capture_photo() {
             std::cout << "ERROR! blank frame grabbed\n";
             break;
         }
+
         // show live and wait for a key with timeout long enough to show images
-        imshow("Live", frame);
+        cv::imshow("Live", frame);
         if (cv::waitKey(5) >= 0)
             break;
     }
-    
+
     return frame;
 }
 
