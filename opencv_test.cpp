@@ -37,7 +37,7 @@ Mat make_grayscale(Mat &image) {
     return gray_image;
 }
 
-Mat full_contrast(Mat &image) {
+Mat full_contrast(Mat &image) { // scale pixel values to full brightness range
     Mat target;
     double min, max;
     minMaxLoc(image, &min, &max);  // Get the dimmest and brightest pixels for scaling
@@ -53,13 +53,7 @@ Mat apply_thresholding(Mat &image) {
     return target;
 }
 
-Mat get_components(Mat &image) {
-    Mat labels, stats, centroids;
-    connectedComponentsWithStats(image, labels, stats, centroids);
-    return labels;
-}
-
-Mat get_moments(Mat &image) {
+vector<Moments> get_moments(Mat &image) {  // get the 0th-3rd order moments for each component
     Mat labels, stats, centroids;
     connectedComponentsWithStats(image, labels, stats, centroids);
 
@@ -74,10 +68,18 @@ Mat get_moments(Mat &image) {
 
     for (int i=0; i<num_blobs; i++) {
         m[i] = moments(blobs[i], true);
-        cout << m[i].m00 << endl;
     }
 
-    return labels;
+    return m;
+}
+
+vector<int> get_centroid(Moments &m) { // get the x,y coordinates given moment data
+    vector<int> centroid(2);
+
+    centroid[0] = (int) (m.m10 / m.m00);
+    centroid[1] = (int) (m.m01 / m.m00);
+
+    return centroid;
 }
 
 Mat capture_photo() { // Display camera output and await user input before capturing
@@ -116,14 +118,18 @@ int main() {
     Mat gray = make_grayscale(image);
     Mat bin_img = apply_thresholding(gray);
 
-    Mat labels = get_moments(bin_img);
+    vector<Moments> m = get_moments(bin_img);
+
+    for (auto &x: m) {
+        vector<int> c = get_centroid(x);
+        cout << format("(x: %i, y: %i)", c[0], c[1]) << endl;
+    }
 
     // Display the image
     imshow("Binary image", bin_img);
-    writeCSV("Labels.csv", labels);
 
     waitKey(0);
     cout << "Hasta la vista, baby" << endl;
-    
+
     return 0;
 }
