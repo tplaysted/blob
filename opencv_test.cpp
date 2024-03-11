@@ -3,12 +3,21 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <fstream>
 
 const int THRESHOLD = 127;
 const int CAMERA_PORT = 0;
 
 using namespace std;
 using namespace cv;
+
+void writeCSV(string filename, Mat m)
+{
+    ofstream myfile;
+    myfile.open(filename.c_str());
+    myfile<< cv::format(m, cv::Formatter::FMT_CSV) << std::endl;
+    myfile.close();
+}
 
 VideoCapture open_external_cam() { // cycle through camera ID 5 to 0
     VideoCapture cap;
@@ -42,6 +51,12 @@ Mat apply_thresholding(Mat &image) {
     Mat target;
     threshold(image, target, THRESHOLD, 255, THRESH_BINARY);  // do thresholding
     return target;
+}
+
+Mat get_components(Mat &image) {
+    Mat labels;
+    connectedComponents(image, labels);
+    return labels;
 }
 
 Mat capture_photo() { // Display camera output and await user input before capturing
@@ -79,8 +94,12 @@ int main() {
     Mat gray = make_grayscale(image);
     Mat bin_img = apply_thresholding(gray);
 
+    Mat labels = get_components(bin_img);
+
     // Display the image
-    imshow("Test OpenCV Installation", bin_img);
+    imshow("Binary image", bin_img);
+    writeCSV("Labels.csv", labels);
+
     waitKey(0);
     cout << "Hasta la vista, baby" << endl;
     
