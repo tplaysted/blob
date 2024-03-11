@@ -5,31 +5,52 @@
 #include <opencv2/imgproc.hpp>
 
 const int THRESHOLD = 127;
-const int CAMERA_PORT = 2;
+const int CAMERA_PORT = 0;
 
-cv::Mat make_grayscale(cv::Mat &image) {
-    cv::Mat gray_image; 
-    cv::cvtColor(image, gray_image, cv::COLOR_BGR2GRAY);
+using namespace std;
+using namespace cv;
+
+VideoCapture open_external_cam() { // cycle through camera ID 5 to 0
+    VideoCapture cap;
+    for (int i=2; i>=0; i--) {
+        cap.open(i);
+        if (cap.isOpened()) {
+            return cap;
+        }
+    }
+
+    return cap;
+}
+
+Mat make_grayscale(Mat &image) {
+    Mat gray_image; 
+    cvtColor(image, gray_image, COLOR_BGR2GRAY);
     return gray_image;
 }
 
-cv::Mat apply_thresholding(cv::Mat &image) {
-    cv::Mat target;
+Mat full_contrast(Mat &image) {
+    Mat target;
     double min, max;
-    cv::minMaxLoc(image, &min, &max);  // Get the dimmest and brightest pixels for scaling
+    minMaxLoc(image, &min, &max);  // Get the dimmest and brightest pixels for scaling
     image.convertTo(target, image.type(), 1.0, (-1.0 * min));
     target.convertTo(target, image.type(), 255 / (max - min + 1), 0); // scale image to full range
-    cv::threshold(target, target, THRESHOLD, 255, cv::THRESH_BINARY);  // do thresholding
+
     return target;
 }
 
-cv::Mat capture_photo() { // Display camera output and await user input before capturing
-    cv::VideoCapture cap(CAMERA_PORT); // On my laptop "0" is the built-in camera. 
+Mat apply_thresholding(Mat &image) {
+    Mat target;
+    threshold(image, target, THRESHOLD, 255, THRESH_BINARY);  // do thresholding
+    return target;
+}
+
+Mat capture_photo() { // Display camera output and await user input before capturing
+    VideoCapture cap = open_external_cam(); // On my laptop "0" is the built-in camera. 
     if (!cap.isOpened()) {
-        std::cerr << "Error opening the camera!" << std::endl;
+        cerr << "Error opening the camera!" << endl;
     }
 
-    cv::Mat frame;
+    Mat frame;
     
     for (;;)
     {
@@ -37,13 +58,13 @@ cv::Mat capture_photo() { // Display camera output and await user input before c
         cap.read(frame);
         // check if we succeeded
         if (frame.empty()) {
-            std::cout << "ERROR! blank frame grabbed\n";
+            cout << "ERROR! blank frame grabbed\n";
             break;
         }
 
         // show live and wait for a key with timeout long enough to show images
-        cv::imshow("Live", frame);
-        if (cv::waitKey(5) >= 0)
+        imshow("Live", frame);
+        if (waitKey(5) >= 0)
             break;
     }
 
@@ -51,26 +72,17 @@ cv::Mat capture_photo() { // Display camera output and await user input before c
 }
 
 int main() {
-    std::cout << "Testing my OpenCV compilation." << std::endl;
+    cout << "Testing my OpenCV compilation." << endl;
 
-    // Read an image file
-    // cv::Mat image = cv::imread("mona_lisa.jpg");
-    
-    // // Check if the image is successfully loaded
-    // if (image.empty()) {
-    //     std::cerr << "Error: Could not open or find the image!" << std::endl;
-    //     return -1;
-    // }
+    Mat image = capture_photo();
 
-    cv::Mat image = capture_photo();
-
-    cv::Mat gray = make_grayscale(image);
-    cv::Mat bin_img = apply_thresholding(gray);
+    Mat gray = make_grayscale(image);
+    Mat bin_img = apply_thresholding(gray);
 
     // Display the image
-    cv::imshow("Test OpenCV Installation", bin_img);
-    cv::waitKey(0);
-    std::cout << "Hasta la vista, baby" << std::endl;
+    imshow("Test OpenCV Installation", bin_img);
+    waitKey(0);
+    cout << "Hasta la vista, baby" << endl;
     
     return 0;
 }
