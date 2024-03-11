@@ -49,13 +49,34 @@ Mat full_contrast(Mat &image) {
 
 Mat apply_thresholding(Mat &image) {
     Mat target;
-    threshold(image, target, THRESHOLD, 255, THRESH_BINARY);  // do thresholding
+    threshold(image, target, THRESHOLD, 255, THRESH_BINARY_INV);  // do thresholding
     return target;
 }
 
 Mat get_components(Mat &image) {
     Mat labels, stats, centroids;
     connectedComponentsWithStats(image, labels, stats, centroids);
+    return labels;
+}
+
+Mat get_moments(Mat &image) {
+    Mat labels, stats, centroids;
+    connectedComponentsWithStats(image, labels, stats, centroids);
+
+    int num_blobs = centroids.rows - 1;
+    vector<Mat> blobs(num_blobs);
+
+    for (int i=0; i<num_blobs; i++) {
+        inRange(labels, i + 1, i + 1, blobs[i]);
+    }
+
+    vector<Moments> m(num_blobs);
+
+    for (int i=0; i<num_blobs; i++) {
+        m[i] = moments(blobs[i], true);
+        cout << m[i].m00 << endl;
+    }
+
     return labels;
 }
 
@@ -89,12 +110,13 @@ Mat capture_photo() { // Display camera output and await user input before captu
 int main() {
     cout << "Testing my OpenCV compilation." << endl;
 
-    Mat image = capture_photo();
+    // Mat image = capture_photo();
+    Mat image = imread("DEMO_circle_fish_star_01.jpg");
 
     Mat gray = make_grayscale(image);
     Mat bin_img = apply_thresholding(gray);
 
-    Mat labels = get_components(bin_img);
+    Mat labels = get_moments(bin_img);
 
     // Display the image
     imshow("Binary image", bin_img);
