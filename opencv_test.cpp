@@ -19,7 +19,7 @@ void writeCSV(string filename, Mat m)
     myfile.close();
 }
 
-VideoCapture open_external_cam() { // cycle through camera ID 5 to 0
+VideoCapture open_external_cam() { // cycle through camera ID 2 to 0
     VideoCapture cap;
     for (int i=2; i>=0; i--) {
         cap.open(i);
@@ -54,8 +54,8 @@ Mat apply_thresholding(Mat &image) {
 }
 
 Mat get_components(Mat &image) {
-    Mat labels;
-    connectedComponents(image, labels);
+    Mat labels, stats, centroids;
+    connectedComponentsWithStats(image, labels, stats, centroids);
     return labels;
 }
 
