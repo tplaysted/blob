@@ -59,14 +59,14 @@ Mat apply_thresholding(Mat &image) {
 
 Mat apply_adaptive_thresholding(Mat &image) { // a more sophisticated thresholding procedure
     Mat target;
-    adaptiveThreshold(image, target, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 51, 2);  // do thresholding
+    adaptiveThreshold(image, target, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 11, 2);  // do thresholding
     return target;
 }
 
-Mat apply_otsu_thresholding(Mat &image) { // otsu thresholding
+Mat apply_otsu_thresholding(Mat &image, int radius) { // otsu thresholding
     Mat target;
     Mat blur;
-    GaussianBlur(image, blur, Size(0, 0), 5, 5);
+    GaussianBlur(image, blur, Size(0, 0), radius, radius);
     threshold(blur, target, THRESHOLD, 255, THRESH_BINARY_INV + THRESH_OTSU);  // do thresholding
     return target;
 }
@@ -155,10 +155,10 @@ int main() {
     cout << "Testing my OpenCV compilation." << endl;
 
     // Mat image = capture_photo();
-    Mat image = imread("DEMO_circle_fish_star_01.jpg");
+    Mat image = imread("DEMO_circle_fish_star_02.jpg");
 
     Mat gray = make_grayscale(image);
-    Mat bin_img = apply_otsu_thresholding(gray);
+    Mat bin_img = apply_otsu_thresholding(gray, 21);
 
     vector<Moments> m = get_moments(bin_img);
 
