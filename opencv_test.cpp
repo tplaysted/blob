@@ -57,6 +57,12 @@ Mat apply_thresholding(Mat &image) {
     return target;
 }
 
+Mat apply_adaptive_thresholding(Mat &image) { // a more sophisticated thresholding procedure
+    Mat target;
+    adaptiveThreshold(image, target, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 11, 2);  // do thresholding
+    return target;
+}
+
 vector<Moments> get_moments(Mat &image) {  // get the 0th-3rd order moments for each component
     Mat labels, stats, centroids;
     connectedComponentsWithStats(image, labels, stats, centroids);
@@ -140,11 +146,11 @@ Mat capture_photo() { // Display camera output and await user input before captu
 int main() {
     cout << "Testing my OpenCV compilation." << endl;
 
-    // Mat image = capture_photo();
-    Mat image = imread("DEMO_circle_fish_star_01.jpg");
+    Mat image = capture_photo();
+    // Mat image = imread("DEMO_circle_fish_star_01.jpg");
 
     Mat gray = make_grayscale(image);
-    Mat bin_img = apply_thresholding(gray);
+    Mat bin_img = apply_adaptive_thresholding(gray);
 
     vector<Moments> m = get_moments(bin_img);
 
