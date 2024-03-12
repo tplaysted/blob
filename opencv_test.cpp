@@ -1,12 +1,16 @@
 #include <iostream>
+#include <cmath>
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+
 #include <fstream>
 
 const int THRESHOLD = 127;
 const int CAMERA_PORT = 0;
+const double pi = 3.14159265358979323846;
 
 using namespace std;
 using namespace cv;
@@ -82,6 +86,30 @@ vector<int> get_centroid(Moments &m) { // get the x,y coordinates given moment d
     return centroid;
 }
 
+double get_orientation(Moments &m) { // get the axis of minimum moments of inertia
+    double n = 2 * (m.m00 * m.m11 - m.m10 * m.m01); 
+    double d = (m.m00 * m.m20 - m.m10 * m.m10) - (m.m00 * m.m02 - m.m01 * m.m01); 
+
+    return -0.5 * atan2(n, d); // atan2 retrieves the principal angle by default
+}
+
+void mark_blob(Mat &image, Moments &m) {
+    vector<int> c = get_centroid(m);
+    double o = get_orientation(m);
+    double short_axis = sqrt(m.m00 / 4.0);
+    double long_axis = 2 * short_axis;
+
+    Point2i short_1, short_2, long_1, long_2;
+
+    short_1 = Point2i(c[0] - short_axis * sin(o), c[1] - short_axis * cos(o));
+    short_2 = Point2i(c[0] + short_axis * sin(o), c[1] + short_axis * cos(o));
+    long_1 = Point2i(c[0] - long_axis * cos(o), c[1] + long_axis * sin(o));
+    long_2 = Point2i(c[0] + long_axis * cos(o), c[1] - long_axis * sin(o));
+
+    line(image, short_1, short_2, 255, 2, LINE_AA);
+    line(image, long_1, long_2, 255, 2, LINE_AA);
+}
+
 Mat capture_photo() { // Display camera output and await user input before capturing
     VideoCapture cap = open_external_cam(); // On my laptop "0" is the built-in camera. 
     if (!cap.isOpened()) {
@@ -120,13 +148,22 @@ int main() {
 
     vector<Moments> m = get_moments(bin_img);
 
+    { int i=0;
     for (auto &x: m) {
         vector<int> c = get_centroid(x);
-        cout << format("(x: %i, y: %i)", c[0], c[1]) << endl;
-    }
+        double o = get_orientation(x);
+
+        cout << "Blob #" << i << endl;
+        cout << "(x: " << c[0] << ", y: " << c[1] << ")" << endl;
+        cout << "theta = " << (90 / pi) * o << " degrees\n" << endl;
+
+        mark_blob(image, x);
+
+        i++;
+    }}
 
     // Display the image
-    imshow("Binary image", bin_img);
+    imshow("Image", image);
 
     waitKey(0);
     cout << "Hasta la vista, baby" << endl;
