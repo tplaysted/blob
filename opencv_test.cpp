@@ -23,7 +23,7 @@ void writeCSV(string filename, Mat m)
     myfile.close();
 }
 
-VideoCapture open_external_cam() { // cycle through camera ID 2 to 0
+VideoCapture open_external_cam() { // open a capture stream with preference given to external devices
     VideoCapture cap;
     for (int i=2; i>=0; i--) {
         cap.open(i);
@@ -35,7 +35,7 @@ VideoCapture open_external_cam() { // cycle through camera ID 2 to 0
     return cap;
 }
 
-Mat make_grayscale(Mat &image) {
+Mat make_grayscale(Mat &image) { // convert an image to grayscale
     Mat gray_image; 
     cvtColor(image, gray_image, COLOR_BGR2GRAY);
     return gray_image;
@@ -93,7 +93,7 @@ double get_orientation(Moments &m) { // get the axis of minimum moments of inert
     return -0.5 * atan2(n, d); // atan2 retrieves the principal angle by default
 }
 
-void mark_blob(Mat &image, Moments &m) {
+void mark_blob(Mat &image, Moments &m) { // draw the axis of orientation on a blob
     vector<int> c = get_centroid(m);
     double o = get_orientation(m);
     double short_axis = sqrt(m.m00 / 4.0);
