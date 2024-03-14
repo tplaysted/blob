@@ -176,10 +176,10 @@ int main() {
 
     // Mat image = capture_photo();
     // Mat image = imread("DEMO_circle_fish_star_02.jpg");
-    Mat image = imread("DEMO_components_02.png");
+    Mat image = imread("DEMO_circle_fish_star_01.jpg");
 
     Mat gray = make_grayscale(image);
-    Mat bin_img = apply_otsu_thresholding(gray, 35); // 35 seems to be ideal, may be smaller for 720p cam
+    Mat bin_img = apply_otsu_thresholding(gray, 1); // 35 seems to be ideal, may be smaller for 720p cam
 
     // vector<Mat> blobs(10);  // code for testing different blur radii
 
@@ -199,7 +199,7 @@ int main() {
 
         cout << "Blob #" << i << endl;
         cout << "(x: " << c[0] << ", y: " << c[1] << ")" << endl;
-        cout << "theta = " << (90 / pi) * o << " degrees" << endl;
+        cout << "theta = " << (180 / pi) * o << " degrees" << endl;
         cout << "area = " << x.m00 << " px" << endl;
         cout << "label = " << l_names[labels[i]] << "\n" << endl;
 
