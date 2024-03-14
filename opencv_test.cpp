@@ -124,6 +124,26 @@ void mark_blob(Mat &image, Moments &m) { // draw the axis of orientation on a bl
     line(image, long_1, long_2, 255, 2, LINE_AA);
 }
 
+vector<int> get_tri_classifier_labels(vector<Moments> &m) { // classify blobs according to area via kmeans algorithm
+    Mat data(1, m.size(), CV_32F);
+
+    for (int i=0; i<m.size(); i++) {
+        data.at<float>(0, i) = m[i].m00;
+    }
+
+    double min, max;
+    minMaxLoc(data, &min, &max);
+
+    for (int i=0; i<m.size(); i++) {
+        data.at<float>(0, i) = data.at<float>(0, i) / max;
+    }
+
+    vector<int> labels;
+    kmeans(data, 3, labels, TermCriteria(TermCriteria::COUNT, 10, 1.0), 3, KmeansFlags::KMEANS_PP_CENTERS);
+
+    return labels;
+}
+
 Mat capture_photo() { // Display camera output and await user input before capturing
     VideoCapture cap = open_external_cam(); // On my laptop "0" is the built-in camera. 
     if (!cap.isOpened()) {
@@ -155,26 +175,36 @@ int main() {
     cout << "Testing my OpenCV compilation." << endl;
 
     // Mat image = capture_photo();
-    Mat image = imread("DEMO_circle_fish_star_02.jpg");
+    // Mat image = imread("DEMO_circle_fish_star_02.jpg");
+    Mat image = imread("DEMO_components_02.png");
 
     Mat gray = make_grayscale(image);
-    Mat bin_img = apply_otsu_thresholding(gray, 21);
+    Mat bin_img = apply_otsu_thresholding(gray, 35); // 35 seems to be ideal, may be smaller for 720p cam
 
-    vector<Moments> m = get_moments(bin_img);
+    // vector<Mat> blobs(10);  // code for testing different blur radii
 
-    { int i=0;
-    for (auto &x: m) {
+    // for (int i=0; i<10; i++) {
+    //     blobs[i] = apply_otsu_thresholding(gray, 21 + 2 * i);
+    //     imshow(format("Radius = %i", 21 + 2 * i), blobs[i]);
+    // }
+
+    vector<Moments> m = get_moments(bin_img); // begin to gather stats
+    vector<int> labels = get_tri_classifier_labels(m); // do classification
+    vector<char> l_names = {'A', 'B', 'C', 'D', 'E'};
+
+    for (int i=0; i<m.size(); i++) {
+        Moments x = m[i];
         vector<int> c = get_centroid(x);
         double o = get_orientation(x);
 
         cout << "Blob #" << i << endl;
         cout << "(x: " << c[0] << ", y: " << c[1] << ")" << endl;
-        cout << "theta = " << (90 / pi) * o << " degrees\n" << endl;
+        cout << "theta = " << (90 / pi) * o << " degrees" << endl;
+        cout << "area = " << x.m00 << " px" << endl;
+        cout << "label = " << l_names[labels[i]] << "\n" << endl;
 
         mark_blob(image, x);
-
-        i++;
-    }}
+    }
 
     // Display the image
     imshow("Image", image);
