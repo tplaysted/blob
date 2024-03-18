@@ -178,13 +178,15 @@ Mat capture_photo() { // Display camera output and await user input before captu
 }
 
 Mat create_test_image(double angle_delta) {
-    Mat im(480, 720, CV_8UC3);
+    int x = 1000;
+    int y = 1000;
+    Mat im(y, x, CV_8UC3);
 
     // Draw reference ellipse
-    ellipse(im, Point(180, 240), Size(150, 100), 0, 0, 360, Scalar(255, 255, 255), -1);
+    ellipse(im, Point(x / 3, y / 2), Size(150, 100), 0, 0, 360, Scalar(255, 255, 255), -1);
 
     // Draw delta ellipse
-    ellipse(im, Point(540, 240), Size(150, 100), angle_delta, 0, 360, Scalar(255, 255, 255), -1);
+    ellipse(im, Point(2 * x / 3, y / 2), Size(150, 100), angle_delta, 0, 360, Scalar(255, 255, 255), -1);
 
     GaussianBlur(im, im, Size(0, 0), 5, 5);
     return Scalar(255, 255, 255) - im;
