@@ -126,8 +126,8 @@ void mark_blob(Mat &image, Moments &m) { // draw the axis of orientation on a bl
     long_1 = Point2i(c[0] - long_axis * cos(o), c[1] + long_axis * sin(o));
     long_2 = Point2i(c[0] + long_axis * cos(o), c[1] - long_axis * sin(o));
 
-    line(image, short_1, short_2, 255, 2, LINE_AA);
-    line(image, long_1, long_2, 255, 2, LINE_AA);
+    line(image, short_1, short_2, Scalar(0, 255, 0), 2, LINE_AA);
+    line(image, long_1, long_2, Scalar(0, 255, 0), 2, LINE_AA);
 }
 
 vector<int> get_tri_classifier_labels(vector<Moments> &m) { // classify blobs according to area via kmeans algorithm
@@ -148,6 +148,11 @@ vector<int> get_tri_classifier_labels(vector<Moments> &m) { // classify blobs ac
     kmeans(data, 3, labels, TermCriteria(TermCriteria::COUNT, 10, 1.0), 3, KmeansFlags::KMEANS_PP_CENTERS);
 
     return labels;
+}
+
+void draw_label(Mat &image, int &x, int &y, char &label) {
+    String lstr = {label};
+    putText(image, lstr, Point(x, y), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0, 0, 255), 4);
 }
 
 Mat capture_photo() { // Display camera output and await user input before capturing
