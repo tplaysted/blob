@@ -3,12 +3,14 @@
 int main() {
     cout << "Testing my OpenCV compilation." << endl;
 
-    // Mat image = capture_photo();
-    Mat image = imread("DEMO_circle_fish_star_02.jpg");
+    Mat image = capture_photo();
+    // Mat image = imread("DEMO_circle_fish_star_02.jpg");
     // Mat image = imread("DEMO_circle_fish_star_01.jpg");
+    // Mat image = imread("DEMO_components_02.png");
 
+    int blur_radius = (int)sqrt(image.size().width * image.size().height) / 75;  // dynamically compute blur radius
     Mat gray = make_grayscale(image);
-    Mat bin_img = apply_otsu_thresholding(gray, 15); // 35 seems to be ideal, may be smaller for 720p cam
+    Mat bin_img = apply_otsu_thresholding(gray, blur_radius); 
 
     vector<Moments> m = get_moments(bin_img); // begin to gather stats
     vector<int> labels = get_tri_classifier_labels(m); // do classification assuming 3 categories (based on AREA)

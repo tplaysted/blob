@@ -19,7 +19,7 @@ void writeCSV(string filename, Mat m)
 {
     ofstream myfile;
     myfile.open(filename.c_str());
-    myfile<< cv::format(m, cv::Formatter::FMT_CSV) << std::endl;
+    myfile << cv::format(m, cv::Formatter::FMT_CSV) << std::endl;
     myfile.close();
 }
 
@@ -79,7 +79,7 @@ Mat apply_otsu_thresholding(Mat &image, int radius) { // otsu thresholding
 
 vector<Moments> get_moments(Mat &image) {  // get the 0th-3rd order moments for each component
     Mat labels, stats, centroids;
-    connectedComponentsWithStats(image, labels, stats, centroids);
+    connectedComponentsWithStats(image, labels, stats, centroids);  // this is where we do connectivity analysis
 
     int num_blobs = centroids.rows - 1;
     vector<Mat> blobs(num_blobs);
@@ -141,11 +141,13 @@ vector<int> get_tri_classifier_labels(vector<Moments> &m) { // classify blobs ac
     minMaxLoc(data, &min, &max);
 
     for (int i=0; i<m.size(); i++) {
-        data.at<float>(0, i) = data.at<float>(0, i) / max;
+        data.at<float>(0, i) = data.at<float>(0, i) / max; // normalise area values
     }
 
+    int K = std::min((int)m.size(), 3); // kmeans will break if we have less than K data points
+
     vector<int> labels;
-    kmeans(data, 3, labels, TermCriteria(TermCriteria::COUNT, 10, 1.0), 3, KmeansFlags::KMEANS_PP_CENTERS);
+    kmeans(data, K, labels, TermCriteria(TermCriteria::COUNT, 10, 1.0), 3, KmeansFlags::KMEANS_PP_CENTERS);
 
     return labels;
 }
@@ -178,7 +180,7 @@ Mat capture_photo() { // Display camera output and await user input before captu
         if (waitKey(5) >= 0)
             break;
     }
-
+    destroyAllWindows();
     return frame;
 }
 
