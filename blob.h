@@ -152,8 +152,8 @@ vector<int> get_tri_classifier_labels(vector<Moments> &m) { // classify blobs ac
     return labels;
 }
 
-void draw_label(Mat &image, int &x, int &y, char &label) {
-    String lstr = {label};
+void draw_label(Mat &image, int &x, int &y, char &label, int &id) {
+    String lstr = format("#%i%c", id, label);
     putText(image, lstr, Point(x, y), FONT_HERSHEY_SIMPLEX, 1.0, Scalar(0, 0, 255), 4);
 }
 
